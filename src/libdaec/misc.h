@@ -12,6 +12,9 @@
 /* return a static string containing the library version in format "x.y.z" */
 const char *de_version(void);
 
+/* returns the current setting for DE_MAX_AXES*/
+int de_max_axes(void);
+
 /*
     pack a vector of strings into a contiguous memory buffer.
     this may be needed before writing an array of strings
@@ -48,14 +51,5 @@ int de_unpack_strings(const char *buffer, int64_t bufsize, const char **strvec, 
 
 /* ========================================================================= */
 /* internal */
-
-/* check if the given path is a file that can be opened for reading */
-bool _isfile(const char *path);
-
-/* make a string "id=N" given integer N */
-const char *_id2str(int64_t id);
-
-/* make a string "pid=N,name='abc'" given integer N */
-const char *_pidnm2str(int64_t pid, const char *name);
 
 #endif
