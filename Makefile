@@ -25,51 +25,40 @@ CFLAGS_PROF = -pg -O0 -g
 HAVE_READLINE = $(shell ./have_readline.sh $(CC))
 HAVE_ZLIB = $(shell ./have_zlib.sh $(CC))
 
+# Detect platform: check $(target) for cross-compilation, or current OS for native build
 ifeq ($(target),)
-# $(target) not specified => use OS we're running in
-	ifeq ($(OS),Windows_NT)
-		# Windows
-		LIBDE = lib/daec.dll
-		LIBDECOV = lib/daeccov.dll
-		LIBDEPROF = lib/daecprof.dll
-		SYMBOLS_LDFLAGS = -Wl,/DEF:src/libdaec/symbols.def
-	else
-		# not Windows
-		MY_LDFLAGS = -lpthread -ldl -lm
-		LIBDE = lib/libdaec.so
-		LIBDECOV = lib/libdaeccov.so
-		LIBDEPROF = lib/libdaecprof.so
-		ifeq ($(shell uname -s),Darwin)
-			# macOS
-			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.mac
-		else
-			# Linux
-			SYMBOLS_LDFLAGS = -Wl,--version-script=src/libdaec/symbols.map
-		endif
-	endif
+	IS_WINDOWS = $(filter Windows_NT,$(OS))
+	IS_DARWIN = $(filter Darwin,$(shell uname -s))
 else
-# We have $(target) - use it
-	ifneq ($(findstring mingw32,$(target)),)
-		# Windows target
-		LIBDE = lib/daec.dll
-		LIBDECOV = lib/daeccov.dll
-		LIBDEPROF = lib/daecprof.dll
-		SYMBOLS_LDFLAGS = -Wl,/DEF:src/libdaec/symbols.def
-	else 
-		# not Windows target
-		MY_LDFLAGS = -lpthread -ldl -lm
-		LIBDE = lib/libdaec.so
-		LIBDECOV = lib/libdaeccov.so
-		LIBDEPROF = lib/libdaecprof.so
-		ifneq ($(findstring darwin,$(target)),)
-			# macOS target
-			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.mac
-		else
-			# Linux target
-			SYMBOLS_LDFLAGS = -Wl,--version-script=src/libdaec/symbols.map
-		endif
-	endif
-endif 
+	IS_WINDOWS = $(findstring mingw,$(target))
+	IS_DARWIN = $(findstring darwin,$(target))
+endif
+
+# Set platform-specific variables
+ifneq ($(IS_WINDOWS),)
+	# Windows
+	LIBDE = lib/daec.dll
+	LIBDECOV = lib/daeccov.dll
+	LIBDEPROF = lib/daecprof.dll
+	SYMBOLS_LDFLAGS = src/libdaec/symbols.def
+	NM_EXPORT_CHECK = nm -g $(1) 2>/dev/null | grep -v " U "
+else ifneq ($(IS_DARWIN),)
+	# macOS
+	MY_LDFLAGS = -lpthread -ldl -lm
+	LIBDE = lib/libdaec.so
+	LIBDECOV = lib/libdaeccov.so
+	LIBDEPROF = lib/libdaecprof.so
+	SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.mac
+	NM_EXPORT_CHECK = nm -gU $(1) 2>/dev/null
+else
+	# Linux and other Unix-like
+	MY_LDFLAGS = -lpthread -ldl -lm
+	LIBDE = lib/libdaec.so
+	LIBDECOV = lib/libdaeccov.so
+	LIBDEPROF = lib/libdaecprof.so
+	SYMBOLS_LDFLAGS = -Wl,--version-script=src/libdaec/symbols.map
+	NM_EXPORT_CHECK = nm -gD $(1) 2>/dev/null
+endif
 
 # for the sqlite3 shell executable
 SQLITE3 = bin/sqlite3
@@ -222,6 +211,13 @@ endif
 # link our library
 $(LIBDE): $(LIBDE_SRC_O) $(CACHEDIR)/sqlite3.o | lib
 	$(LINK.c) -shared $^ -o $@ $(LIBDE_LDFLAGS)
+	@echo "Checking for exported sqlite3 symbols..."
+	@if $(call NM_EXPORT_CHECK,$@) | grep -i sqlite3; then \
+		echo "ERROR: Found sqlite3 symbols exported from $@!"; \
+		rm -f $@; \
+		exit 1; \
+	fi
+	@echo "No sqlite3 symbols exported"
 
 # link our library with coverage
 $(LIBDECOV): $(LIBDECOV_SRC_O) $(CACHEDIR)/sqlite3.o | lib
@@ -309,5 +305,4 @@ testcov :: $(TESTCOV) | $(COVDIR)
 .PHONY : coverage
 coverage :: testcov | $(COVDIR)
 	gcov -o $(COVDIR) $(LIBDE_SRC_C) 
-	lcov -c --directory $(COVDIR) -o lcov.info 
-
+	lcov -c --directory $(COVDIR) -o lcov.info
