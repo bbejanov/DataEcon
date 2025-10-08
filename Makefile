@@ -28,26 +28,46 @@ HAVE_ZLIB = $(shell ./have_zlib.sh $(CC))
 ifeq ($(target),)
 # $(target) not specified => use OS we're running in
 	ifeq ($(OS),Windows_NT)
+		# Windows
 		LIBDE = lib/daec.dll
 		LIBDECOV = lib/daeccov.dll
 		LIBDEPROF = lib/daecprof.dll
+		SYMBOLS_LDFLAGS = -Wl,/DEF:src/libdaec/symbols.def
 	else
+		# not Windows
 		MY_LDFLAGS = -lpthread -ldl -lm
 		LIBDE = lib/libdaec.so
 		LIBDECOV = lib/libdaeccov.so
 		LIBDEPROF = lib/libdaecprof.so
+		ifeq ($(shell uname -s),Darwin)
+			# macOS
+			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.txt
+		else
+			# Linux
+			SYMBOLS_LDFLAGS = -Wl,--version-script=src/libdaec/symbols.map
+		endif
 	endif
 else
 # We have $(target) - use it
-	ifeq ($(findstring mingw32,$(target)),)
+	ifneq ($(findstring mingw32,$(target)),)
+		# Windows target
+		LIBDE = lib/daec.dll
+		LIBDECOV = lib/daeccov.dll
+		LIBDEPROF = lib/daecprof.dll
+		SYMBOLS_LDFLAGS = -Wl,/DEF:src/libdaec/symbols.def
+	else 
+		# not Windows target
 		MY_LDFLAGS = -lpthread -ldl -lm
 		LIBDE = lib/libdaec.so
 		LIBDECOV = lib/libdaeccov.so
 		LIBDEPROF = lib/libdaecprof.so
-	else
-		LIBDE = lib/daec.dll
-		LIBDECOV = lib/daeccov.dll
-		LIBDEPROF = lib/daecprof.dll
+		ifneq ($(findstring darwin,$(target)),)
+			# macOS target
+			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.txt
+		else
+			# Linux target
+			SYMBOLS_LDFLAGS = -Wl,--version-script=src/libdaec/symbols.map
+		endif
 	endif
 endif 
 
@@ -63,7 +83,7 @@ SQLITE3_LDFLAGS = $(MY_LDFLAGS)
 LIBDE_SRC_H = $(wildcard src/libdaec/*.h) sqlite3.h
 LIBDE_SRC_C = $(wildcard src/libdaec/*.c)
 LIBDE_SRC_O = $(patsubst %.c,$(CACHEDIR)/%.o,$(notdir $(LIBDE_SRC_C)))
-LIBDE_LDFLAGS = $(MY_LDFLAGS) -Wl,--version-script=src/libdaec/symbols.map
+LIBDE_LDFLAGS = $(MY_LDFLAGS) $(SYMBOLS_LDFLAGS)
 
 LIBDEPROF_SRC_O = $(patsubst %.c,$(PROFDIR)/%.o,$(notdir $(LIBDE_SRC_C)))
 

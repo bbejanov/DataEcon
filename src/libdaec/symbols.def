@@ -1,0 +1,3 @@
+EXPORTS
+    de_*
+    get_*_from_voidptr*
