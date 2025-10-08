@@ -41,7 +41,7 @@ ifeq ($(target),)
 		LIBDEPROF = lib/libdaecprof.so
 		ifeq ($(shell uname -s),Darwin)
 			# macOS
-			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.txt
+			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.mac
 		else
 			# Linux
 			SYMBOLS_LDFLAGS = -Wl,--version-script=src/libdaec/symbols.map
@@ -63,7 +63,7 @@ else
 		LIBDEPROF = lib/libdaecprof.so
 		ifneq ($(findstring darwin,$(target)),)
 			# macOS target
-			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.txt
+			SYMBOLS_LDFLAGS = -Wl,-exported_symbols_list,src/libdaec/symbols.mac
 		else
 			# Linux target
 			SYMBOLS_LDFLAGS = -Wl,--version-script=src/libdaec/symbols.map
