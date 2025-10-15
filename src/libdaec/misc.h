@@ -49,6 +49,26 @@ DE_API int de_pack_strings(const char **strvec, int64_t length, char *buffer, in
 */
 DE_API int de_unpack_strings(const char *buffer, int64_t bufsize, const char **strvec, int64_t length);
 
+/* ******************** matlab pointer extractors **************************** */
+
+DE_API double get_double_from_voidptr(const void* p);
+DE_API int64_t get_int64_from_voidptr(const void* p);
+DE_API uint64_t get_uint64_from_voidptr(const void* p);
+DE_API const char* get_string_from_voidptr(const void* p);
+DE_API double get_complex_real_from_voidptr(const void* p);
+DE_API double get_complex_imag_from_voidptr(const void* p);
+/* Array/Vector access functions with byte offset */
+DE_API double get_double_from_voidptr_offset(const void* p, size_t byte_offset);
+DE_API int64_t get_int64_from_voidptr_offset(const void* p, size_t byte_offset);
+DE_API uint64_t get_uint64_from_voidptr_offset(const void* p, size_t byte_offset);
+/* Vectorized array extraction functions for performance optimization */
+/* Copy array of values from void pointer to pre-allocated output array */
+DE_API void get_double_array_from_voidptr(const void* p, size_t length, double* output);
+DE_API void get_int64_array_from_voidptr(const void* p, size_t length, int64_t* output);
+DE_API void get_uint64_array_from_voidptr(const void* p, size_t length, uint64_t* output);
+DE_API int32_t get_int32_from_voidptr(const void* p);
+DE_API signed char get_char_from_voidptr(const void* p);
+
 /* ========================================================================= */
 /* internal */
 
