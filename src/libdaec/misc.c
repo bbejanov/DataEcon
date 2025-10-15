@@ -9,12 +9,12 @@
 #include "misc.h"
 #include "error.h"
 
-const char *de_version(void)
+DE_API const char *de_version(void)
 {
     return DE_VERSION;
 }
 
-int de_max_axes(void)
+DE_API int de_max_axes(void)
 {
     return DE_MAX_AXES;
 }
@@ -38,7 +38,7 @@ int de_max_axes(void)
       representation into `buffer` (must not be NULL) and the number of bytes
       actually used in `*bufsize`.
 */
-int de_pack_strings(const char **strvec, int64_t length, char *buffer, int64_t *bufsize)
+DE_API int de_pack_strings(const char **strvec, int64_t length, char *buffer, int64_t *bufsize)
 {
     if (strvec == NULL || bufsize == NULL)
         return error(DE_NULL);
@@ -88,7 +88,7 @@ int de_pack_strings(const char **strvec, int64_t length, char *buffer, int64_t *
     * all pointes written in `strvec` point between `buffer` and
       `buffer + bufsize - 1`.
 */
-int de_unpack_strings(const char *buffer, int64_t bufsize, const char **strvec, int64_t length)
+DE_API int de_unpack_strings(const char *buffer, int64_t bufsize, const char **strvec, int64_t length)
 {
     if (buffer == NULL || strvec == NULL)
         return error(DE_NULL);

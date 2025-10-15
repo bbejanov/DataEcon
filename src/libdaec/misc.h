@@ -10,10 +10,10 @@
 /* API */
 
 /* return a static string containing the library version in format "x.y.z" */
-const char *de_version(void);
+DE_API const char *de_version(void);
 
 /* returns the current setting for DE_MAX_AXES*/
-int de_max_axes(void);
+DE_API int de_max_axes(void);
 
 /*
     pack a vector of strings into a contiguous memory buffer.
@@ -33,7 +33,7 @@ int de_max_axes(void);
       representation into `buffer` (must not be NULL) and the number of bytes
       actually used in `*bufsize`.
 */
-int de_pack_strings(const char **strvec, int64_t length, char *buffer, int64_t *bufsize);
+DE_API int de_pack_strings(const char **strvec, int64_t length, char *buffer, int64_t *bufsize);
 
 /* "unpack" a buffer of strings into a vector of '\0'- terminated strings
    this may be needed after reading an array of strings
@@ -47,7 +47,7 @@ int de_pack_strings(const char **strvec, int64_t length, char *buffer, int64_t *
     * all pointes written in `strvec` point between `buffer` and
       `buffer + bufsize - 1`.
 */
-int de_unpack_strings(const char *buffer, int64_t bufsize, const char **strvec, int64_t length);
+DE_API int de_unpack_strings(const char *buffer, int64_t bufsize, const char **strvec, int64_t length);
 
 /* ========================================================================= */
 /* internal */

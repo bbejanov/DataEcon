@@ -37,11 +37,14 @@ endif
 # Set platform-specific variables
 ifneq ($(IS_WINDOWS),)
 	# Windows
+	MY_LDFLAGS = 
 	LIBDE = lib/daec.dll
 	LIBDECOV = lib/daeccov.dll
 	LIBDEPROF = lib/daecprof.dll
-	SYMBOLS_LDFLAGS = src/libdaec/symbols.def
-	NM_EXPORT_CHECK = nm -g $(1) 2>/dev/null | grep -v " U "
+	SYMBOLS_LDFLAGS = 
+#	grep -o -P '\b(get|de)_\w+\b(?=\()' include/daec.h  | sed 's/^/    /g' >> src/libdaec/symbols.def 
+# 	SYMBOLS_LDFLAGS = src/libdaec/symbols.def
+	NM_EXPORT_CHECK = nm -gD $(1) 2>/dev/null | grep -v " U "
 else ifneq ($(IS_DARWIN),)
 	# macOS
 	MY_LDFLAGS = -lpthread -ldl -lm
