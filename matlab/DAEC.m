@@ -82,6 +82,32 @@ classdef DAEC < handle
                 inst.debug_ = tf;
             end
         end
+        
+        function db = readdb(path, NameValueArgs)
+            arguments 
+                path {mustBeTextScalar} = ''
+                NameValueArgs.memory (1,1) {mustBeNumericOrLogical} = false
+                NameValueArgs.read_to_iris (1,1) {mustBeNumericOrLogical} = false
+                NameValueArgs.iris_colnames_field {mustBeTextScalar} = ''
+            end
+            
+            de = DEFile(path, 'memory', NameValueArgs.memory, 'readonly', true, 'read_to_iris', NameValueArgs.read_to_iris, 'iris_colnames_field', NameValueArgs.iris_colnames_field);
+            db = de.read();
+            de.close();
+        end
+        
+        function writedb(path, db, NameValueArgs)
+            arguments 
+                path {mustBeTextScalar} = ''
+                db {mustBeA(db, ["struct"])} = struct()
+                NameValueArgs.iris_colnames_field {mustBeTextScalar} = ''
+            end
+            de = DEFile(path,  'readonly', false, 'iris_colnames_field', NameValueArgs.iris_colnames_field);
+            de.truncate();
+            de.write(db);
+            de.close();
+            
+        end
     end
 
     methods (Static)
@@ -233,6 +259,7 @@ classdef DAEC < handle
             
             switch freq
                 case {  DAEC.enums.frequency_t.freq_yearly_dec, 
+                        DAEC.enums.frequency_t.freq_halfyearly_jun,
                         DAEC.enums.frequency_t.freq_quarterly_mar,
                         DAEC.enums.frequency_t.freq_monthly
                     }
@@ -385,6 +412,9 @@ classdef DAEC < handle
             switch iris_freq
                 case 1 % yearly
                     iris_date_obj = yy(daec_start);
+                case 2 % halfyearly
+                    mod = rem(daec_start, 2);
+                    iris_date_obj = hh((daec_start-mod)/2, mod+1);
                 case 4 % quarterly
                     mod = rem(daec_start, 4);
                     iris_date_obj = qq((daec_start-mod)/4, mod+1);
